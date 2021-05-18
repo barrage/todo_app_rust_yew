@@ -1,5 +1,6 @@
 use super::api::{InputTodoList, RequestHelper, TodoList};
 use yew::{
+    prelude::*,
     format::{Json, Nothing},
     html,
     services::{
@@ -13,29 +14,32 @@ use yewtil::future::LinkFuture;
 
 use super::api::ApiResponse;
 
-pub struct InsertTodoListComponent {
+pub struct DeleteTodoListComponent {
     api: Fetch<Request<ApiResponse>, ApiResponse>,
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
-    insert_title: String,
-}
+    props: Props,
 
+}
+#[derive(Properties, Clone)]
+pub struct Props {
+    pub todo_list: TodoList
+}
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse>),
-    PostApi,
-    UpdateInsertTitle(String),
+    DeleteApi,
 }
 
-impl Component for InsertTodoListComponent {
+impl Component for DeleteTodoListComponent {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        InsertTodoListComponent {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        DeleteTodoListComponent {
             api: Default::default(),
             fetch_task: None,
             link,
-            insert_title: String::new(),
+            props: props
         }
     }
 
@@ -45,20 +49,15 @@ impl Component for InsertTodoListComponent {
                 self.api.apply(fetch_state);
                 true
             }
-            Msg::PostApi => {
-                if self.insert_title.is_empty() {
-                    Msg::SetApiFetchState(FetchAction::NotFetching);
-                    return true;
-                }
+            Msg::DeleteApi => {
+                
                 //ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
                 //ConsoleService::log("fetch");
-                let body = InputTodoList {
-                    title: self.insert_title.clone(),
-                }
-                .clone();
-                let request = RequestHelper::post(&body);
+               
+        
+                let request = RequestHelper::delete(&self.props.todo_list);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
@@ -72,10 +71,7 @@ impl Component for InsertTodoListComponent {
 
                 true
             }
-            Msg::UpdateInsertTitle(new_title) => {
-                self.insert_title = new_title;
-                true
-            }
+            
         }
     }
 
@@ -84,37 +80,30 @@ impl Component for InsertTodoListComponent {
     }
 
     fn view(&self) -> yew::Html {
-        html! {
-            <>
-                <textarea oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=&self.insert_title></textarea>
-                <button onclick=self.link.callback(|_| Msg::PostApi)>
-                        { "Add new list" }
-                </button>
-
-                {match self.api.as_ref().state() {
+       match self.api.as_ref().state() {
                     yewtil::fetch::FetchState::NotFetching(_) => {
-                        html!{}
+                        html!{
+                            <button onclick=self.link.callback(|_| Msg::DeleteApi)>
+                                { "Delete" }
+                            </button>
+                        }
                     }
                     yewtil::fetch::FetchState::Fetching(_) => {
                         html! {
-                            <p> { "Inserting"} </p>
+                        
                         }
                     }
                     yewtil::fetch::FetchState::Fetched(response) => {
-
-
-                            html! {
-                                <div>
-                                    <h4><b>{&"Inserted: "} {&response.body[0].title}</b></h4>
-                                </div>
-                            }
-
+                        match response.code {
+                            200 => html! { <span style="color:green;">{" Deleted"} </span> },
+                            500 => html! { <span style="color:red;">{" Can't delete, has children"} </span> },
+                            _ => html! { " -> Idk"}
+                        }
                     }
                     yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
-                }}
+                }
 
-            </>
-        }
+            
     }
 
     fn rendered(&mut self, _first_render: bool) {}

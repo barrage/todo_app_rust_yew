@@ -232,7 +232,7 @@ impl Component for Model {
         html! {
             <>
                 <Header/>
-                <div>
+                /*<div>
                     <button onclick=self.link.callback(|_| Msg::FetchJSON)>
                             { &self.btn }
                     </button>
@@ -241,7 +241,7 @@ impl Component for Model {
                     <button onclick=self.link.callback(|_| Msg::InsertList)>
                             { "Add new list" }
                     </button>
-                    </div>
+                    </div>*/
                 <InsertTodoListComponent/>
                 <TodoListComponent/>
                 <Footer/>
