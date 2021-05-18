@@ -1,9 +1,6 @@
 use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
 
-
-pub struct Header{
-    
-}
+pub struct Header {}
 #[derive(Properties, Clone)]
 pub struct Props {}
 pub enum Msg {}
@@ -12,7 +9,7 @@ impl Component for Header {
     type Message = Msg;
     type Properties = Props;
     fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Header { }
+        Header {}
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {

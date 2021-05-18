@@ -2,9 +2,9 @@ use crate::components::todo_list::api::TodoList;
 
 use super::api::{InputTodoItem, RequestHelper, TodoItem};
 use yew::{
-    prelude::*,
     format::{Json, Nothing},
     html,
+    prelude::*,
     services::{
         fetch::{FetchTask, Request, Response},
         ConsoleService, FetchService,
@@ -25,7 +25,7 @@ pub struct InsertTodoItemComponent {
 }
 #[derive(Properties, Clone)]
 pub struct Props {
-    pub todo_list: i32
+    pub todo_list: i32,
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse<TodoItem>>),
@@ -70,7 +70,6 @@ impl Component for InsertTodoItemComponent {
                 let request = RequestHelper::post(&body);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
-
                         let Json(data) = res.into_body();
                         ConsoleService::log(&format!("{:?}", data));
                         Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
@@ -96,7 +95,7 @@ impl Component for InsertTodoItemComponent {
 
     fn view(&self) -> yew::Html {
         html! {
-            <>  
+            <>
                 <div style="margin-left: 40px">
                     <input type="text" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=&self.insert_title/>
                     <button onclick=self.link.callback(|_| Msg::PostApi)>

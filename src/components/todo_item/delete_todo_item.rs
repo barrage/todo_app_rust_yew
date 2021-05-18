@@ -1,9 +1,15 @@
-
-
-use super::api::{ RequestHelper, TodoItem};
-use yew::{Component, ComponentLink, format::{Json}, html, prelude::*, services::{FetchService, fetch::{FetchTask, Request, Response}}};
+use super::api::{RequestHelper, TodoItem};
+use yew::{
+    format::Json,
+    html,
+    prelude::*,
+    services::{
+        fetch::{FetchTask, Request, Response},
+        FetchService,
+    },
+    Component, ComponentLink,
+};
 use yewtil::fetch::{Fetch, FetchAction};
-
 
 use super::api::ApiResponse;
 
@@ -12,11 +18,10 @@ pub struct DeleteTodoItemComponent {
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
     props: Props,
-
 }
 #[derive(Properties, Clone)]
 pub struct Props {
-    pub todo_item: TodoItem
+    pub todo_item: TodoItem,
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse<String>>),
@@ -32,7 +37,7 @@ impl Component for DeleteTodoItemComponent {
             api: Default::default(),
             fetch_task: None,
             link,
-            props: props
+            props: props,
         }
     }
 
@@ -43,13 +48,11 @@ impl Component for DeleteTodoItemComponent {
                 true
             }
             Msg::DeleteApi => {
-                
                 //ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
                 //ConsoleService::log("fetch");
-               
-        
+
                 let request = RequestHelper::delete(&self.props.todo_item);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<String>, anyhow::Error>>>| {
@@ -64,7 +67,6 @@ impl Component for DeleteTodoItemComponent {
 
                 true
             }
-            
         }
     }
 
@@ -73,30 +75,26 @@ impl Component for DeleteTodoItemComponent {
     }
 
     fn view(&self) -> yew::Html {
-       match self.api.as_ref().state() {
-                    yewtil::fetch::FetchState::NotFetching(_) => {
-                        html!{
-                            <button onclick=self.link.callback(|_| Msg::DeleteApi)>
-                                { "x" }
-                            </button>
-                        }
-                    }
-                    yewtil::fetch::FetchState::Fetching(_) => {
-                        html! {
-                        
-                        }
-                    }
-                    yewtil::fetch::FetchState::Fetched(response) => {
-                        match response.code {
-                            200 => html! { <span style="color:green;">{" Deleted"} </span> },
-                            500 => html! { <span style="color:red;">{" Can't delete, has children"} </span> },
-                            _ => html! { " -> Idk"}
-                        }
-                    }
-                    yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
+        match self.api.as_ref().state() {
+            yewtil::fetch::FetchState::NotFetching(_) => {
+                html! {
+                    <button onclick=self.link.callback(|_| Msg::DeleteApi)>
+                        { "x" }
+                    </button>
                 }
-
-            
+            }
+            yewtil::fetch::FetchState::Fetching(_) => {
+                html! {}
+            }
+            yewtil::fetch::FetchState::Fetched(response) => match response.code {
+                200 => html! { <span style="color:green;">{" Deleted"} </span> },
+                500 => html! { <span style="color:red;">{" Can't delete, has children"} </span> },
+                _ => html! { " -> Idk"},
+            },
+            yewtil::fetch::FetchState::Failed(_, _) => {
+                html! {<h1>{"ERROR"}</h1>}
+            }
+        }
     }
 
     fn rendered(&mut self, _first_render: bool) {}

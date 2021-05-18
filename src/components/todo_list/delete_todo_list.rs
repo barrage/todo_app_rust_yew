@@ -1,8 +1,8 @@
 use super::api::{InputTodoList, RequestHelper, TodoList};
 use yew::{
-    prelude::*,
     format::{Json, Nothing},
     html,
+    prelude::*,
     services::{
         fetch::{FetchTask, Request, Response},
         ConsoleService, FetchService,
@@ -19,11 +19,10 @@ pub struct DeleteTodoListComponent {
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
     props: Props,
-
 }
 #[derive(Properties, Clone)]
 pub struct Props {
-    pub todo_list: TodoList
+    pub todo_list: TodoList,
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse>),
@@ -39,7 +38,7 @@ impl Component for DeleteTodoListComponent {
             api: Default::default(),
             fetch_task: None,
             link,
-            props: props
+            props: props,
         }
     }
 
@@ -50,13 +49,11 @@ impl Component for DeleteTodoListComponent {
                 true
             }
             Msg::DeleteApi => {
-                
                 //ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
                 //ConsoleService::log("fetch");
-               
-        
+
                 let request = RequestHelper::delete(&self.props.todo_list);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse, anyhow::Error>>>| {
@@ -71,7 +68,6 @@ impl Component for DeleteTodoListComponent {
 
                 true
             }
-            
         }
     }
 
@@ -80,30 +76,26 @@ impl Component for DeleteTodoListComponent {
     }
 
     fn view(&self) -> yew::Html {
-       match self.api.as_ref().state() {
-                    yewtil::fetch::FetchState::NotFetching(_) => {
-                        html!{
-                            <button onclick=self.link.callback(|_| Msg::DeleteApi)>
-                                { "Delete" }
-                            </button>
-                        }
-                    }
-                    yewtil::fetch::FetchState::Fetching(_) => {
-                        html! {
-                        
-                        }
-                    }
-                    yewtil::fetch::FetchState::Fetched(response) => {
-                        match response.code {
-                            200 => html! { <span style="color:green;">{" Deleted"} </span> },
-                            500 => html! { <span style="color:red;">{" Can't delete, has children"} </span> },
-                            _ => html! { " -> Idk"}
-                        }
-                    }
-                    yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
+        match self.api.as_ref().state() {
+            yewtil::fetch::FetchState::NotFetching(_) => {
+                html! {
+                    <button onclick=self.link.callback(|_| Msg::DeleteApi)>
+                        { "Delete" }
+                    </button>
                 }
-
-            
+            }
+            yewtil::fetch::FetchState::Fetching(_) => {
+                html! {}
+            }
+            yewtil::fetch::FetchState::Fetched(response) => match response.code {
+                200 => html! { <span style="color:green;">{" Deleted"} </span> },
+                500 => html! { <span style="color:red;">{" Can't delete, has children"} </span> },
+                _ => html! { " -> Idk"},
+            },
+            yewtil::fetch::FetchState::Failed(_, _) => {
+                html! {<h1>{"ERROR"}</h1>}
+            }
+        }
     }
 
     fn rendered(&mut self, _first_render: bool) {}

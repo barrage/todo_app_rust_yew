@@ -1,10 +1,8 @@
-
-
 use super::api::{CheckTodoItem, RequestHelper, TodoItem};
 use yew::{
-    prelude::*,
-    format::{Json},
+    format::Json,
     html,
+    prelude::*,
     services::{
         fetch::{FetchTask, Request, Response},
         ConsoleService, FetchService,
@@ -12,7 +10,6 @@ use yew::{
     Component, ComponentLink,
 };
 use yewtil::fetch::{Fetch, FetchAction};
-
 
 use super::api::ApiResponse;
 
@@ -24,7 +21,7 @@ pub struct CheckTodoItemComponent {
 }
 #[derive(Properties, Clone)]
 pub struct Props {
-    pub todo_item: TodoItem
+    pub todo_item: TodoItem,
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse<TodoItem>>),
@@ -51,7 +48,6 @@ impl Component for CheckTodoItemComponent {
                 true
             }
             Msg::PatchApi => {
-                
                 ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
@@ -66,10 +62,9 @@ impl Component for CheckTodoItemComponent {
                 let request = RequestHelper::patch(&body);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
-
                         let Json(data) = res.into_body();
                         ConsoleService::log(&format!("{:?}", data));
-                        
+
                         Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
                     },
                 );
@@ -84,12 +79,13 @@ impl Component for CheckTodoItemComponent {
     }
 
     fn change(&mut self, _props: Self::Properties) -> yew::ShouldRender {
-        todo!()
+        self.props = _props;
+        true
     }
 
     fn view(&self) -> yew::Html {
         html! {
-            <>  
+            <>
                 <input type="checkbox" checked=self.props.todo_item.done, onclick=self.link.callback(|_| Msg::PatchApi)/>
                 {match self.api.as_ref().state() {
                     yewtil::fetch::FetchState::NotFetching(_) => {
@@ -97,12 +93,13 @@ impl Component for CheckTodoItemComponent {
                     }
                     yewtil::fetch::FetchState::Fetching(_) => {
                         html! {
-                            
+
                         }
                     }
                     yewtil::fetch::FetchState::Fetched(response) => {
+
                             html! {
-                               
+
                             }
 
                     }

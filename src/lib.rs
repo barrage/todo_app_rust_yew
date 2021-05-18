@@ -1,15 +1,18 @@
-#![recursion_limit="512"]
+#![recursion_limit = "512"]
 use std::fmt::Display;
 pub mod components;
 
 use crate::components::footer::Footer;
 use crate::components::header::Header;
-use crate::components::todo_list::todo_list::TodoListComponent;
 use crate::components::todo_list::insert_todo_list::InsertTodoListComponent;
+use crate::components::todo_list::todo_list::TodoListComponent;
 use wasm_bindgen::prelude::*;
-use yew::{format::{Json, Nothing}, services::ConsoleService};
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
+use yew::{
+    format::{Json, Nothing},
+    services::ConsoleService,
+};
 use yew::{html, Html};
 
 use anyhow::Error;
@@ -82,7 +85,7 @@ impl Model {
                     <ul>
                     {
                         for value.body.iter().map(|l| {
-                            html! { 
+                            html! {
                                 <li> {&l.title} {"   "}  <button >
                                 { "x" }
                             </button>
@@ -107,7 +110,7 @@ impl Model {
                     }
                     </ul>
                 </>
-               
+
             }
         } else {
             html! {
@@ -145,12 +148,13 @@ impl Model {
                 }
             },
         );
-        let body = NewTodoList{title: self.create_list_title.clone()};
+        let body = NewTodoList {
+            title: self.create_list_title.clone(),
+        };
         let request = Request::post("http://localhost:8081/todo_lists")
-        .header("Content-Type", "application/json")
-            
-        .body(Json(&body))
-        .unwrap();
+            .header("Content-Type", "application/json")
+            .body(Json(&body))
+            .unwrap();
         FetchService::fetch(request, callback).unwrap()
     }
     fn delete_list(&mut self, id: i32) -> FetchTask {
@@ -165,11 +169,10 @@ impl Model {
                 }
             },
         );
-        
+
         let request = Request::delete(format!("http://localhost:8081/todo_lists/{}", id))
-            
-        .body(Nothing)
-        .unwrap();
+            .body(Nothing)
+            .unwrap();
         FetchService::fetch(request, callback).unwrap()
     }
 }
@@ -182,7 +185,7 @@ impl Component for Model {
             data: None,
             fetch: None,
             btn: String::from("Button click"),
-            create_list_title: String::new()
+            create_list_title: String::new(),
         }
     }
 
@@ -196,7 +199,7 @@ impl Component for Model {
             Msg::FetchReady(response) => {
                 self.data = response.map(|data| data).ok();
                 true
-            },
+            }
             Msg::UpdateListName(str) => {
                 self.create_list_title = str;
                 true
@@ -207,17 +210,13 @@ impl Component for Model {
                 self.fetch = Some(self.insert_list());
 
                 true
-            },
+            }
             Msg::Delete(id) => {
                 self.fetch = Some(self.delete_list(id));
                 true
             }
 
-            Msg::Try => {
-                
-                true
-            }
-            
+            Msg::Try => true,
         }
     }
 
