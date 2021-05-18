@@ -1,41 +1,46 @@
-use super::api::{InputTodoList, RequestHelper, TodoList};
+
+
+use super::api::{CheckTodoItem, RequestHelper, TodoItem};
 use yew::{
-    format::{Json, Nothing},
+    prelude::*,
+    format::{Json},
     html,
     services::{
         fetch::{FetchTask, Request, Response},
         ConsoleService, FetchService,
     },
-    Component, ComponentLink, InputData,
+    Component, ComponentLink,
 };
 use yewtil::fetch::{Fetch, FetchAction};
-use yewtil::future::LinkFuture;
+
 
 use super::api::ApiResponse;
 
-pub struct InsertTodoListComponent {
-    api: Fetch<Request<ApiResponse>, ApiResponse>,
+pub struct CheckTodoItemComponent {
+    api: Fetch<Request<ApiResponse<TodoItem>>, ApiResponse<TodoItem>>,
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
-    insert_title: String,
+    props: Props,
 }
-
+#[derive(Properties, Clone)]
+pub struct Props {
+    pub todo_item: TodoItem
+}
 pub enum Msg {
-    SetApiFetchState(FetchAction<ApiResponse>),
-    PostApi,
-    UpdateInsertTitle(String),
+    SetApiFetchState(FetchAction<ApiResponse<TodoItem>>),
+    PatchApi,
 }
 
-impl Component for InsertTodoListComponent {
+impl Component for CheckTodoItemComponent {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        InsertTodoListComponent {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        CheckTodoItemComponent {
             api: Default::default(),
             fetch_task: None,
             link,
-            insert_title: String::new(),
+            props,
         }
     }
 
@@ -45,35 +50,34 @@ impl Component for InsertTodoListComponent {
                 self.api.apply(fetch_state);
                 true
             }
-            Msg::PostApi => {
-                if self.insert_title.is_empty() {
-                    Msg::SetApiFetchState(FetchAction::NotFetching);
-                    return true;
-                }
-                //ConsoleService::log("getApi");
+            Msg::PatchApi => {
+                
+                ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                //ConsoleService::log("fetch");
-                let body = InputTodoList {
-                    title: self.insert_title.clone(),
+                ConsoleService::log("fetch");
+                let body = CheckTodoItem {
+                    id: self.props.todo_item.id,
+                    checked: !self.props.todo_item.done,
+                    todo_list_id: self.props.todo_item.todo_list_id,
                 }
                 .clone();
-                let request = RequestHelper::post(&body);
+                ConsoleService::log(&format!("{:?}", body));
+                let request = RequestHelper::patch(&body);
                 let callback = self.link.callback(
-                    |res: Response<Json<Result<ApiResponse, anyhow::Error>>>| {
+                    |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
+
                         let Json(data) = res.into_body();
+                        ConsoleService::log(&format!("{:?}", data));
+                        
                         Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
                     },
                 );
-                //ConsoleService::log("go fetch");
+                ConsoleService::log("go fetch");
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                //ConsoleService::log("done");
+                ConsoleService::log("done");
 
-                true
-            }
-            Msg::UpdateInsertTitle(new_title) => {
-                self.insert_title = new_title;
                 true
             }
         }
@@ -85,28 +89,20 @@ impl Component for InsertTodoListComponent {
 
     fn view(&self) -> yew::Html {
         html! {
-            <>
-                <input type="text" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=&self.insert_title/>
-                <button onclick=self.link.callback(|_| Msg::PostApi)>
-                        { "Add new list" }
-                </button>
-
+            <>  
+                <input type="checkbox" checked=self.props.todo_item.done, onclick=self.link.callback(|_| Msg::PatchApi)/>
                 {match self.api.as_ref().state() {
                     yewtil::fetch::FetchState::NotFetching(_) => {
                         html!{}
                     }
                     yewtil::fetch::FetchState::Fetching(_) => {
                         html! {
-                            <p> { "Inserting"} </p>
+                            
                         }
                     }
                     yewtil::fetch::FetchState::Fetched(response) => {
-
-
                             html! {
-                                <div>
-                                    <h4><b>{&"Inserted: "} {&response.body[0].title}</b></h4>
-                                </div>
+                               
                             }
 
                     }

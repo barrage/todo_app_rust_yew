@@ -1,16 +1,18 @@
 use yew::{prelude::*, Component, ComponentLink, format::{Json, Nothing}, html, services::{ConsoleService, FetchService, fetch::{FetchTask, Request, Response}}};
 use yewtil::fetch::{Fetch, FetchAction};
-
+use yew::virtual_dom::vnode::VNode;
 use super::api::TodoItem;
-
+use crate::components::{footer::Footer, todo_list::api::TodoListWithItems};
 use super::api::ApiResponse;
 use super::api::RequestHelper;
+use super::check_todo_item::CheckTodoItemComponent;
+use super::delete_todo_item::DeleteTodoItemComponent;
 use super::super::todo_list::api::TodoList;
 
 
 
 pub struct TodoItemComponent{
-    api: Fetch<Request<ApiResponse>, ApiResponse>,
+    api: Fetch<Request<ApiResponse<TodoListWithItems>>, ApiResponse<TodoListWithItems>>,
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
     props: Props,
@@ -21,7 +23,7 @@ pub struct Props{
 }
 
 pub enum Msg {
-    SetApiFetchState(FetchAction<ApiResponse>),
+    SetApiFetchState(FetchAction<ApiResponse<TodoListWithItems>>),
     GetApi,
 }
 
@@ -53,7 +55,7 @@ impl Component for TodoItemComponent {
                 self.link.send_message(Msg::SetApiFetchState(FetchAction::Fetching));
                 ConsoleService::log("fetch");
                 let request = RequestHelper::get(self.props.todo_list.id);
-                let callback = self.link.callback(|res : Response<Json<Result<ApiResponse, anyhow::Error>>>| {
+                let callback = self.link.callback(|res : Response<Json<Result<ApiResponse<TodoListWithItems>, anyhow::Error>>>| {
                     let Json(data) = res.into_body();
                     Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
                 });
@@ -72,31 +74,51 @@ impl Component for TodoItemComponent {
     }
 
     fn view(&self) -> yew::Html {
-         match self.api.as_ref().state() {
-                yewtil::fetch::FetchState::NotFetching(_) => {
-                    html! {
-                        
-                    }
-                }
-                yewtil::fetch::FetchState::Fetching(_) => {
-                    html! {
-                        
-                    }
-                }
-                yewtil::fetch::FetchState::Fetched(response) => {
-                    response.body[0].items.iter().map(|todo_item: &TodoItem| {
-                        html! {
-                            <div> 
-                                <a><b>{&todo_item.title} </b></a>
-                            </div>
+        html! {
+            <div style="margin-left:40px">
+                
+
+                {
+                    match self.api.as_ref().state() {
+                        yewtil::fetch::FetchState::NotFetching(_) => {
+                            html! {
+                                
+                            }
                         }
-                    }).collect()
-                    
-                    
+                        yewtil::fetch::FetchState::Fetching(_) => {
+                            html! {
+                                
+                            }
+                        }
+                        yewtil::fetch::FetchState::Fetched(response) => {
+                            html! {
+                                <table>
+                                    {response.body[0].items.iter().map(|todo_item: &TodoItem| {
+                                        html! {
+                                            <tr> 
+                                                <td><b>{&todo_item.title} </b></td> 
+                                                <td><CheckTodoItemComponent todo_item=todo_item/></td>
+                                                <td><DeleteTodoItemComponent todo_item=todo_item/></td>
+                                            </tr>
+                                        }
+                                    }).collect::<VNode>()}
+                                </table>
+                            }
+
+                            
+                            
+                            
+                        }
+                        yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
+                    }
                 }
-                yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
-            }
+               
+                
+                
+            </div>
         }
+         
+    }
         
         fn rendered(&mut self, _first_render: bool) {
             

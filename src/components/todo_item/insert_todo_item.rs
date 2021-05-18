@@ -1,5 +1,8 @@
-use super::api::{InputTodoList, RequestHelper, TodoList};
+use crate::components::todo_list::api::TodoList;
+
+use super::api::{InputTodoItem, RequestHelper, TodoItem};
 use yew::{
+    prelude::*,
     format::{Json, Nothing},
     html,
     services::{
@@ -13,29 +16,34 @@ use yewtil::future::LinkFuture;
 
 use super::api::ApiResponse;
 
-pub struct InsertTodoListComponent {
-    api: Fetch<Request<ApiResponse>, ApiResponse>,
+pub struct InsertTodoItemComponent {
+    api: Fetch<Request<ApiResponse<TodoItem>>, ApiResponse<TodoItem>>,
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
     insert_title: String,
+    props: Props,
 }
-
+#[derive(Properties, Clone)]
+pub struct Props {
+    pub todo_list: i32
+}
 pub enum Msg {
-    SetApiFetchState(FetchAction<ApiResponse>),
+    SetApiFetchState(FetchAction<ApiResponse<TodoItem>>),
     PostApi,
     UpdateInsertTitle(String),
 }
 
-impl Component for InsertTodoListComponent {
+impl Component for InsertTodoItemComponent {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        InsertTodoListComponent {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        InsertTodoItemComponent {
             api: Default::default(),
             fetch_task: None,
             link,
             insert_title: String::new(),
+            props,
         }
     }
 
@@ -50,25 +58,28 @@ impl Component for InsertTodoListComponent {
                     Msg::SetApiFetchState(FetchAction::NotFetching);
                     return true;
                 }
-                //ConsoleService::log("getApi");
+                ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                //ConsoleService::log("fetch");
-                let body = InputTodoList {
+                ConsoleService::log("fetch");
+                let body = InputTodoItem {
                     title: self.insert_title.clone(),
+                    todo_list_id: self.props.todo_list,
                 }
                 .clone();
                 let request = RequestHelper::post(&body);
                 let callback = self.link.callback(
-                    |res: Response<Json<Result<ApiResponse, anyhow::Error>>>| {
+                    |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
+
                         let Json(data) = res.into_body();
+                        ConsoleService::log(&format!("{:?}", data));
                         Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
                     },
                 );
-                //ConsoleService::log("go fetch");
+                ConsoleService::log("go fetch");
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                //ConsoleService::log("done");
+                ConsoleService::log("done");
 
                 true
             }
@@ -85,12 +96,13 @@ impl Component for InsertTodoListComponent {
 
     fn view(&self) -> yew::Html {
         html! {
-            <>
-                <input type="text" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=&self.insert_title/>
-                <button onclick=self.link.callback(|_| Msg::PostApi)>
-                        { "Add new list" }
-                </button>
-
+            <>  
+                <div style="margin-left: 40px">
+                    <input type="text" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=&self.insert_title/>
+                    <button onclick=self.link.callback(|_| Msg::PostApi)>
+                            { "Add new item" }
+                    </button>
+                </div>
                 {match self.api.as_ref().state() {
                     yewtil::fetch::FetchState::NotFetching(_) => {
                         html!{}
@@ -105,7 +117,7 @@ impl Component for InsertTodoListComponent {
 
                             html! {
                                 <div>
-                                    <h4><b>{&"Inserted: "} {&response.body[0].title}</b></h4>
+                                    <h4 style="color:green"><b>{&"Inserted: "} {&response.body[0].title}</b></h4>
                                 </div>
                             }
 

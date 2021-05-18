@@ -3,9 +3,8 @@ use std::{str};
 
 use serde::{Deserialize, Serialize};
 use yew::{format::{Json, Nothing}, services::fetch::Request};
-use yewtil::fetch::{FetchRequest, MethodBody};
 
-use crate::{components::todo_list::api::TodoListWithItems};
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TodoItem{
     pub id: i32,
@@ -18,12 +17,17 @@ pub struct InputTodoItem{
     pub title: String,
     pub todo_list_id: i32
 }
-
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
-pub struct ApiResponse {
+pub struct CheckTodoItem{
+    pub checked: bool,
+    pub id: i32,
+    pub todo_list_id: i32
+}
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ApiResponse<T> {
     pub code: i32,
     pub message: String,
-    pub body: Vec<TodoListWithItems>,
+    pub body: Vec<T>,
 }
 
 pub struct RequestHelper {}
@@ -45,4 +49,10 @@ impl RequestHelper {
     pub fn delete(body: &TodoItem) -> Request<Nothing> {
         Request::delete(format!("{}/{}/{}", BASE_URL, body.todo_list_id, body.id)).body(Nothing).expect("Error deleting")
     }
+    pub fn patch(body: &CheckTodoItem ) -> Request<Json<&CheckTodoItem>> {
+        Request::post(format!("{}/{}/{}", BASE_URL, body.todo_list_id, body.id))
+        .header("Content-Type", "application/json")
+        .body(Json(body))
+        .unwrap()
+    }    
 }

@@ -5,6 +5,7 @@ use super::api::{RequestHelper, TodoList};
 use super::delete_todo_list::DeleteTodoListComponent;
 use super::super::todo_item::todo_item::TodoItemComponent;
 use super::api::{ApiResponse};
+use crate::components::todo_item::insert_todo_item::InsertTodoItemComponent;
 
 
 
@@ -64,41 +65,44 @@ impl Component for TodoListComponent {
     }
 
     fn view(&self) -> yew::Html {
-        html! {
-            <>
-                <button onclick=self.link.callback(|_| Msg::GetApi)> {"Refresh list"} </button>
-                {
-                    match self.api.as_ref().state() {
-                        yewtil::fetch::FetchState::NotFetching(_) => {
-                            html! {
-                                <button onclick=self.link.callback(|_| Msg::GetApi)> {"Get lists"} </button>
-                            }
-                        }
-                        yewtil::fetch::FetchState::Fetching(_) => {
-                            html! {
-                                <p> { "Loading"} </p>
-                            }
-                        }
-                        yewtil::fetch::FetchState::Fetched(response) => {
-                            response.body.iter().map(|todo_list: &TodoList| {
-                                html! {
-                                    <div> 
-                                        <h4><b>{&todo_list.title} </b> <DeleteTodoListComponent todo_list=todo_list/></h4>
-                                        <div>
-                                            <TodoItemComponent todo_list=todo_list/>
-                                        </div>
-                                    </div>
-                                }
-                            }).collect()
-                            
-                           
-                        }
-                        yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
-                    }
-                }
-            </>
-        }
         
+                
+        match self.api.as_ref().state() {
+            yewtil::fetch::FetchState::NotFetching(_) => {
+                html! {
+                    <button onclick=self.link.callback(|_| Msg::GetApi)> {"Get lists"} </button>
+                }
+            }
+            yewtil::fetch::FetchState::Fetching(_) => {
+                html! {
+                    <p> { "Loading"} </p>
+                }
+            }
+            yewtil::fetch::FetchState::Fetched(response) => {
+                response.body.iter().map(|todo_list: &TodoList| {
+                    html! {
+                        <div> 
+                            <h4><b>{&todo_list.title} </b> <DeleteTodoListComponent todo_list=todo_list/></h4>
+                            <div>
+                                <TodoItemComponent todo_list=todo_list/>
+                                <InsertTodoItemComponent todo_list=todo_list.id/>
+                            </div>
+                        </div>
+                    }
+                }).collect()
+                
+                
+            }
+            yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
+        }
+                
+            
+        
+    }
+    fn rendered(&mut self, _first_render: bool) {
+        if _first_render {
+            self.update(Msg::GetApi);
+        }
     }
 }
 
