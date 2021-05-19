@@ -22,10 +22,12 @@ pub struct DeleteTodoItemComponent {
 #[derive(Properties, Clone)]
 pub struct Props {
     pub todo_item: TodoItem,
+    pub refresh: Callback<super::todo_item::Msg>
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse<String>>),
     DeleteApi,
+    Deleted(super::todo_item::Msg)
 }
 
 impl Component for DeleteTodoItemComponent {
@@ -44,6 +46,12 @@ impl Component for DeleteTodoItemComponent {
     fn update(&mut self, msg: Self::Message) -> yew::ShouldRender {
         match msg {
             Msg::SetApiFetchState(fetch_state) => {
+                match fetch_state {
+                    FetchAction::NotFetching => {}
+                    FetchAction::Fetching => {}
+                    FetchAction::Fetched(_) => {self.update(Msg::Deleted(super::todo_item::Msg::GetApi));},
+                    FetchAction::Failed(_) => {}
+                };
                 self.api.apply(fetch_state);
                 true
             }
@@ -67,11 +75,17 @@ impl Component for DeleteTodoItemComponent {
 
                 true
             }
+            Msg::Deleted(m) => {
+                self.props.refresh.emit(m);
+                
+                false
+            }
         }
     }
 
     fn change(&mut self, _props: Self::Properties) -> yew::ShouldRender {
-        todo!()
+        self.props = _props;
+        true
     }
 
     fn view(&self) -> yew::Html {

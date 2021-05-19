@@ -22,10 +22,12 @@ pub struct CheckTodoItemComponent {
 #[derive(Properties, Clone)]
 pub struct Props {
     pub todo_item: TodoItem,
+    pub refresh: Callback<super::todo_item::Msg>
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse<TodoItem>>),
     PatchApi,
+    GetApi,
 }
 
 impl Component for CheckTodoItemComponent {
@@ -44,34 +46,55 @@ impl Component for CheckTodoItemComponent {
     fn update(&mut self, msg: Self::Message) -> yew::ShouldRender {
         match msg {
             Msg::SetApiFetchState(fetch_state) => {
+                
                 self.api.apply(fetch_state);
                 true
             }
-            Msg::PatchApi => {
-                ConsoleService::log("getApi");
+            Msg::GetApi => {
+                
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                ConsoleService::log("fetch");
+                
+                let request = RequestHelper::get_item(self.props.todo_item.todo_list_id, self.props.todo_item.id);
+                let callback = self.link.callback(
+                    |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
+                        let Json(data) = res.into_body();
+                        
+                        Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                    },
+                );
+                
+                let task = FetchService::fetch(request, callback).unwrap();
+                self.fetch_task = Some(task);
+                
+
+                true
+            }
+            Msg::PatchApi => {
+                
+                self.link
+                    .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
+                
                 let body = CheckTodoItem {
                     id: self.props.todo_item.id,
                     checked: !self.props.todo_item.done,
                     todo_list_id: self.props.todo_item.todo_list_id,
                 }
                 .clone();
-                ConsoleService::log(&format!("{:?}", body));
+                
                 let request = RequestHelper::patch(&body);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
-                        ConsoleService::log(&format!("{:?}", data));
-
+                        
                         Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                        
                     },
                 );
-                ConsoleService::log("go fetch");
+               
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                ConsoleService::log("done");
+              
 
                 true
             }
@@ -86,7 +109,7 @@ impl Component for CheckTodoItemComponent {
     fn view(&self) -> yew::Html {
         html! {
             <>
-                <input type="checkbox" checked=self.props.todo_item.done, onclick=self.link.callback(|_| Msg::PatchApi)/>
+                
                 {match self.api.as_ref().state() {
                     yewtil::fetch::FetchState::NotFetching(_) => {
                         html!{}
@@ -97,9 +120,9 @@ impl Component for CheckTodoItemComponent {
                         }
                     }
                     yewtil::fetch::FetchState::Fetched(response) => {
-
+                        
                             html! {
-
+                                <input type="checkbox" checked=response.body[0].done, onclick=self.link.callback(|_| Msg::PatchApi)/>
                             }
 
                     }
@@ -110,7 +133,11 @@ impl Component for CheckTodoItemComponent {
         }
     }
 
-    fn rendered(&mut self, _first_render: bool) {}
+    fn rendered(&mut self, _first_render: bool) {
+        if _first_render {
+            self.update(Msg::GetApi);
+        }
+    }
 
     fn destroy(&mut self) {}
 }

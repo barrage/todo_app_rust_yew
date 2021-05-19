@@ -2,6 +2,7 @@ use super::super::todo_list::api::TodoList;
 use super::api::ApiResponse;
 use super::api::RequestHelper;
 use super::api::TodoItem;
+use super::insert_todo_item::InsertTodoItemComponent;
 use super::check_todo_item::CheckTodoItemComponent;
 use super::delete_todo_item::DeleteTodoItemComponent;
 use crate::components::{footer::Footer, todo_list::api::TodoListWithItems};
@@ -59,21 +60,21 @@ impl Component for TodoItemComponent {
                 true
             }
             Msg::GetApi => {
-                ConsoleService::log("getApi");
+                
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                ConsoleService::log("fetch");
-                let request = RequestHelper::get(self.props.todo_list.id);
+                
+                let request = RequestHelper::get_items(self.props.todo_list.id);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<TodoListWithItems>, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
                         Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
                     },
                 );
-                ConsoleService::log("go fetch");
+                
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                ConsoleService::log("done");
+                
 
                 true
             }
@@ -86,6 +87,7 @@ impl Component for TodoItemComponent {
     }
 
     fn view(&self) -> yew::Html {
+        let callback = self.link.callback(|m: Msg| m);
         html! {
             <div style="margin-left:40px">
 
@@ -110,11 +112,16 @@ impl Component for TodoItemComponent {
                                         html! {
                                             <tr>
                                                 <td><b>{&todo_item.title} </b></td>
-                                                <td><CheckTodoItemComponent todo_item=todo_item/></td>
-                                                <td><DeleteTodoItemComponent todo_item=todo_item/></td>
+                                                <td><CheckTodoItemComponent todo_item=todo_item refresh=callback.clone()/></td>
+                                                <td><DeleteTodoItemComponent todo_item=todo_item refresh=callback.clone()/></td>
                                             </tr>
                                         }
                                     }).collect::<VNode>()}
+                                    <tr> 
+                                        <td>
+                                        <InsertTodoItemComponent todo_list=self.props.todo_list.id refresh=callback.clone()/>
+                                        </td>
+                                    </tr>
                                 </table>
                             }
 
@@ -134,7 +141,7 @@ impl Component for TodoItemComponent {
 
     fn rendered(&mut self, _first_render: bool) {
         if _first_render {
-            ConsoleService::log("ocu render");
+            
             self.update(Msg::GetApi);
         }
     }

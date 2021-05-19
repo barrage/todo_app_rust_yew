@@ -23,10 +23,12 @@ pub struct DeleteTodoListComponent {
 #[derive(Properties, Clone)]
 pub struct Props {
     pub todo_list: TodoList,
+    pub refresh: Callback<crate::Msg>
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse>),
     DeleteApi,
+    Deleted(crate::Msg),
 }
 
 impl Component for DeleteTodoListComponent {
@@ -45,34 +47,50 @@ impl Component for DeleteTodoListComponent {
     fn update(&mut self, msg: Self::Message) -> yew::ShouldRender {
         match msg {
             Msg::SetApiFetchState(fetch_state) => {
+                match fetch_state {
+                    FetchAction::NotFetching => {}
+                    FetchAction::Fetching => {}
+                    FetchAction::Fetched(_) => {self.update(Msg::Deleted(crate::Msg::FetchJSON));},
+                    FetchAction::Failed(_) => {}
+                };
                 self.api.apply(fetch_state);
                 true
             }
             Msg::DeleteApi => {
-                //ConsoleService::log("getApi");
+                
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                //ConsoleService::log("fetch");
+              
 
                 let request = RequestHelper::delete(&self.props.todo_list);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
-                        Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                        match data {
+                            Ok(d) => {Msg::SetApiFetchState(FetchAction::Fetched(d))}
+                            Err(_) => {Msg::SetApiFetchState(FetchAction::NotFetching)}
+                        }
                     },
                 );
-                //ConsoleService::log("go fetch");
+                
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                //ConsoleService::log("done");
+              
 
                 true
             }
+            Msg::Deleted(msg) => {
+
+                self.props.refresh.emit(msg);
+            
+            false
+        }
         }
     }
 
     fn change(&mut self, _props: Self::Properties) -> yew::ShouldRender {
-        todo!()
+        self.props = _props;
+        true
     }
 
     fn view(&self) -> yew::Html {

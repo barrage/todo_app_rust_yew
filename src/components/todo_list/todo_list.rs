@@ -4,6 +4,7 @@ use super::api::{RequestHelper, TodoList};
 use super::delete_todo_list::DeleteTodoListComponent;
 use crate::components::todo_item::insert_todo_item::InsertTodoItemComponent;
 use yew::{
+    prelude::*,
     format::{Json, Nothing},
     html,
     services::{
@@ -19,22 +20,28 @@ pub struct TodoListComponent {
     api: Fetch<Request<ApiResponse>, ApiResponse>,
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
+    props: Props,
 }
 
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse>),
     GetApi,
 }
+#[derive(Properties, Clone)]
+pub struct Props {
+    pub refresh: Callback<crate::Msg>
+}
 
 impl Component for TodoListComponent {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         TodoListComponent {
             api: Default::default(),
             fetch_task: None,
             link,
+            props: _props
         }
     }
 
@@ -45,21 +52,26 @@ impl Component for TodoListComponent {
                 true
             }
             Msg::GetApi => {
-                ConsoleService::log("getApi");
+                
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                ConsoleService::log("fetch");
+             
                 let request = RequestHelper::get();
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
-                        Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                        ConsoleService::log(&format!("{:?}", data));
+                        match data {
+                            Ok(d) => {Msg::SetApiFetchState(FetchAction::Fetched(d))}
+                            Err(_) => {Msg::SetApiFetchState(FetchAction::NotFetching)}
+                        }
+                        
                     },
                 );
-                ConsoleService::log("go fetch");
+                
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                ConsoleService::log("done");
+                
 
                 true
             }
@@ -67,7 +79,9 @@ impl Component for TodoListComponent {
     }
 
     fn change(&mut self, _props: Self::Properties) -> yew::ShouldRender {
-        todo!()
+        self.props = _props;
+        self.update(Msg::GetApi);
+        true
     }
 
     fn view(&self) -> yew::Html {
@@ -83,13 +97,15 @@ impl Component for TodoListComponent {
                 }
             }
             yewtil::fetch::FetchState::Fetched(response) => {
-                response.body.iter().map(|todo_list: &TodoList| {
+                let mut body = response.body.clone();
+                body.sort_by(|a,b| b.id.cmp(&a.id));
+                body.iter().map(|todo_list: &TodoList| {
                     html! {
                         <div>
-                            <h4><b>{&todo_list.title} </b> <DeleteTodoListComponent todo_list=todo_list/></h4>
+                            <h4><b>{&todo_list.title} </b> <DeleteTodoListComponent todo_list=todo_list refresh=self.props.refresh.clone()/></h4>
                             <div>
                                 <TodoItemComponent todo_list=todo_list/>
-                                <InsertTodoItemComponent todo_list=todo_list.id/>
+                                
                             </div>
                         </div>
                     }

@@ -26,10 +26,12 @@ pub struct InsertTodoItemComponent {
 #[derive(Properties, Clone)]
 pub struct Props {
     pub todo_list: i32,
+    pub refresh: Callback<super::todo_item::Msg>
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse<TodoItem>>),
     PostApi,
+    Inserted(super::todo_item::Msg),
     UpdateInsertTitle(String),
 }
 
@@ -50,6 +52,12 @@ impl Component for InsertTodoItemComponent {
     fn update(&mut self, msg: Self::Message) -> yew::ShouldRender {
         match msg {
             Msg::SetApiFetchState(fetch_state) => {
+                match fetch_state {
+                    FetchAction::NotFetching => {}
+                    FetchAction::Fetching => {}
+                    FetchAction::Fetched(_) => {self.update(Msg::Inserted(super::todo_item::Msg::GetApi));},
+                    FetchAction::Failed(_) => {}
+                };
                 self.api.apply(fetch_state);
                 true
             }
@@ -86,11 +94,16 @@ impl Component for InsertTodoItemComponent {
                 self.insert_title = new_title;
                 true
             }
+            Msg::Inserted(m) => {
+                self.props.refresh.emit(m);
+                false
+            }
         }
     }
 
     fn change(&mut self, _props: Self::Properties) -> yew::ShouldRender {
-        todo!()
+        self.props = _props;
+        true
     }
 
     fn view(&self) -> yew::Html {

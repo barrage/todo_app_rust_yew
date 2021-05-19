@@ -1,7 +1,7 @@
 #![recursion_limit = "512"]
-use std::fmt::Display;
+use std::{fmt::Display, panic};
 pub mod components;
-
+extern crate console_error_panic_hook;
 use crate::components::footer::Footer;
 use crate::components::header::Header;
 use crate::components::todo_list::insert_todo_list::InsertTodoListComponent;
@@ -228,6 +228,7 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
+        let callback = self.link.callback(|m| m);
         html! {
             <>
                 <Header/>
@@ -241,8 +242,8 @@ impl Component for Model {
                             { "Add new list" }
                     </button>
                     </div>*/
-                <InsertTodoListComponent/>
-                <TodoListComponent/>
+                <InsertTodoListComponent refresh=callback.clone() />
+                <TodoListComponent refresh=callback.clone() />
                 <Footer/>
             </>
 
@@ -252,5 +253,6 @@ impl Component for Model {
 
 #[wasm_bindgen(start)]
 pub fn run_app() {
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
     App::<Model>::new().mount_to_body();
 }
