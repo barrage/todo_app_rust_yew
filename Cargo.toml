@@ -9,7 +9,8 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-yew = { version="0.17"}
+yew = { version="0.18"}
+yew-router = "0.15.0"
 yewtil = { git = "https://github.com/yewstack/yew", features = ["fetch"] }
 wasm-bindgen = "0.2.67"
 serde = {version = "1.0.125", features = ["derive"]}

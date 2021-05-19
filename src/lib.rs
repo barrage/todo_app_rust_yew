@@ -1,31 +1,35 @@
 #![recursion_limit = "512"]
-use std::{fmt::Display, panic};
+use std::{panic};
 pub mod components;
+pub mod routes;
 extern crate console_error_panic_hook;
-use crate::components::footer::Footer;
+use crate::components::{footer::Footer, todo_item::todo_item::TodoItemComponent};
 use crate::components::header::Header;
-use crate::components::todo_list::insert_todo_list::InsertTodoListComponent;
+
 use crate::components::todo_list::todo_list::TodoListComponent;
+
+use routes::AppRoute;
+
 use wasm_bindgen::prelude::*;
-use yew::prelude::*;
-use yew::services::fetch::{FetchService, FetchTask, Request, Response};
-use yew::{
-    format::{Json, Nothing},
-    services::ConsoleService,
-};
+use yew:: prelude::*;
+use yew::events::*;
+use yew::services::fetch::{FetchTask};
+
 use yew::{html, Html};
 
-use anyhow::Error;
-use serde::{Deserialize, Serialize};
+use yew::callback::Callback;
+use yew_router::{Switch, prelude::RouteAgent, route::Route, service::RouteService};
+
+
 pub enum Msg {
-    FetchJSON,
+    RouteChanged(Route<()>),
+    ChangeRoute(AppRoute),
+    /*FetchJSON,
     FetchReady(Result<ApiResponse, Error>),
-    InsertList,
-    UpdateListName(String),
-    Delete(i32),
-    Try,
+
+    Try,*/
 }
-#[derive(Deserialize, Debug)]
+/*#[derive(Deserialize, Debug)]
 pub struct ApiResponse {
     pub code: i32,
     pub message: String,
@@ -35,15 +39,15 @@ impl Display for ApiResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", &self)
     }
-}
-#[derive(Deserialize, Debug)]
+}*/
+/*#[derive(Deserialize, Debug)]
 pub struct TodoList {
     id: i32,
     title: String,
     items: Vec<TodoItem>,
-}
+}*/
 
-#[derive(Serialize, Deserialize, Debug)]
+/*#[derive(Serialize, Deserialize, Debug)]
 pub struct NewTodoList {
     title: String,
 }
@@ -56,9 +60,9 @@ impl Display for TodoList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", &self)
     }
-}
+}*/
 
-#[derive(Deserialize, Debug)]
+/*#[derive(Deserialize, Debug)]
 pub struct TodoItem {
     id: i32,
     title: String,
@@ -69,56 +73,24 @@ impl Display for TodoItem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", &self)
     }
-}
+}*/
 pub struct Model {
     link: ComponentLink<Self>,
-    data: Option<ApiResponse>,
+    //data: Option<ApiResponse>,
     fetch: Option<FetchTask>,
-    pub btn: String,
-    pub create_list_title: String,
+    route_service: RouteService<()>,
+    route: Route<()>,
+    router_agent: Box<dyn Bridge<RouteAgent>>,
+
 }
 impl Model {
-    fn view_data(&self) -> Html {
-        if let Some(value) = &self.data {
-            html! {
-                <>
-                    <ul>
-                    {
-                        for value.body.iter().map(|l| {
-                            html! {
-                                <li> {&l.title} {"   "}  <button >
-                                { "x" }
-                            </button>
-                                 //todo items list
-                                        <ul>
-                                            {for l.items.iter().map(|item| {
-                                                html! {
-                                                    <li> {&item.title} {" --> "}{match &item.done {
-                                                        true => html! {
-                                                            <input type="checkbox" value=true/>
-                                                        },
-                                                        false => html! {
-                                                            <input type="checkbox" value=false/>
-                                                        },
-                                                    }}</li>
-                                                }
-                                            })}
-                                        </ul>
-                                </li>
-                            }
-                        })
-                    }
-                    </ul>
-                </>
-
-            }
-        } else {
-            html! {
-                <p> {"No data yet"} </p>
-            }
-        }
+    fn change_route(&self, app_route: AppRoute) -> Callback<MouseEvent> {
+        self.link.callback(move |_| {
+            let route = app_route.clone(); // TODO, I don't think I should have to clone here?
+            Msg::ChangeRoute(route)
+        })
     }
-    fn fetch_json(&mut self) -> FetchTask {
+    /*fn fetch_json(&mut self) -> FetchTask {
         let callback = self.link.callback(
             move |response: Response<Json<Result<ApiResponse, Error>>>| {
                 let (meta, Json(data)) = response.into_parts();
@@ -135,89 +107,66 @@ impl Model {
             .body(Nothing)
             .unwrap();
         FetchService::fetch(request, callback).unwrap()
-    }
-    fn insert_list(&mut self) -> FetchTask {
-        let callback = self.link.callback(
-            move |response: Response<Json<Result<ApiResponse, Error>>>| {
-                let (meta, Json(data)) = response.into_parts();
-                println!("META {:?}, {:?}", meta, data);
-                if meta.status.is_success() {
-                    Msg::FetchJSON
-                } else {
-                    Msg::Try
-                }
-            },
-        );
-        let body = NewTodoList {
-            title: self.create_list_title.clone(),
-        };
-        let request = Request::post("http://localhost:8081/todo_lists")
-            .header("Content-Type", "application/json")
-            .body(Json(&body))
-            .unwrap();
-        FetchService::fetch(request, callback).unwrap()
-    }
-    fn delete_list(&mut self, id: i32) -> FetchTask {
-        let callback = self.link.callback(
-            move |response: Response<Json<Result<ApiResponse, Error>>>| {
-                let (meta, Json(data)) = response.into_parts();
-                println!("META {:?}, {:?}", meta, data);
-                if meta.status.is_success() {
-                    Msg::FetchJSON
-                } else {
-                    Msg::Try
-                }
-            },
-        );
-
-        let request = Request::delete(format!("http://localhost:8081/todo_lists/{}", id))
-            .body(Nothing)
-            .unwrap();
-        FetchService::fetch(request, callback).unwrap()
-    }
+    }*/
 }
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let router_agent = RouteAgent::bridge(link.callback(Msg::RouteChanged));
+        let mut route_service : RouteService<()> = RouteService::new();
+        let route = route_service.get_route();
+        
+        let callback= link.callback( Msg::RouteChanged);
+        route_service.register_callback(callback);
+        
         Self {
             link,
-            data: None,
+            //data: None,
             fetch: None,
-            btn: String::from("Button click"),
-            create_list_title: String::new(),
+            route_service,
+            route,
+            router_agent
+           
+            
+            
+            
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
+        /*match msg {
             Msg::FetchJSON => {
-                let task = self.fetch_json();
-                self.fetch = Some(task);
+                /*let task = self.fetch_json();
+                self.fetch = Some(task);*/
                 true
             }
             Msg::FetchReady(response) => {
-                self.data = response.map(|data| data).ok();
+                //self.data = response.map(|data| data).ok();
                 true
             }
-            Msg::UpdateListName(str) => {
-                self.create_list_title = str;
-                true
-            }
-            Msg::InsertList => {
-                let title = &self.create_list_title;
-                ConsoleService::log(title);
-                self.fetch = Some(self.insert_list());
-
-                true
-            }
-            Msg::Delete(id) => {
-                self.fetch = Some(self.delete_list(id));
-                true
-            }
+           
 
             Msg::Try => true,
+        }*/
+       match msg {
+           Msg::RouteChanged(route) => self.route = route,
+           Msg::ChangeRoute(route) => {
+            // This might be derived in the future
+            let route_string = match route {
+                AppRoute::Home => "/".to_string(),
+                AppRoute::TodoLists  => "/lists".to_string(),
+                AppRoute::TodoList(id) => format!("/lists/{}",id)
+                
+            };
+            self.route_service.set_route(&route_string, ());
+            self.route = Route {
+                route: route_string,
+                state: (),
+            };
         }
+       }
+        true
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -228,22 +177,25 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
-        let callback = self.link.callback(|m| m);
+        //let callback = self.link.callback(|m| m);
+
         html! {
             <>
                 <Header/>
-                /*<div>
-                    <button onclick=self.link.callback(|_| Msg::FetchJSON)>
-                            { &self.btn }
-                    </button>
-                    {self.view_data()}
-                    <textarea oninput=self.link.callback(|e: InputData| Msg::UpdateListName(e.value)) value=&self.create_list_title></textarea>
-                    <button onclick=self.link.callback(|_| Msg::InsertList)>
-                            { "Add new list" }
-                    </button>
-                    </div>*/
-                <InsertTodoListComponent refresh=callback.clone() />
-                <TodoListComponent refresh=callback.clone() />
+                <nav>
+                    <button onclick=&self.change_route(AppRoute::Home) > {"home"} </button>
+                    <button onclick=&self.change_route(AppRoute::TodoLists) > {"lists"} </button>
+                </nav>
+                <div>
+                {
+                    match AppRoute::switch(self.route.clone()){
+                        Some(AppRoute::TodoList(id)) => html! { <TodoItemComponent todo_list=id />},
+                        Some(AppRoute::TodoLists) => html! {<TodoListComponent />},
+                        Some(AppRoute::Home) => html! {"home"},
+                        None => html! {"none"}
+                    }
+                }
+                </div>
                 <Footer/>
             </>
 

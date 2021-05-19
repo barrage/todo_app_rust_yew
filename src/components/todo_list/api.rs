@@ -8,7 +8,12 @@ use yew::{
 use yewtil::fetch::{FetchRequest, MethodBody};
 
 use super::super::todo_item::api::TodoItem;
-use crate::NewTodoList;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NewTodoList {
+    title: String,
+}
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TodoList {
     pub id: i32,

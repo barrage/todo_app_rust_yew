@@ -1,16 +1,15 @@
-use super::api::{InputTodoList, RequestHelper, TodoList};
+use super::api::{RequestHelper, TodoList};
 use yew::{
-    format::{Json, Nothing},
+    format::Json,
     html,
     prelude::*,
     services::{
         fetch::{FetchTask, Request, Response},
-        ConsoleService, FetchService,
+        FetchService,
     },
-    Component, ComponentLink, InputData,
+    Component, ComponentLink,
 };
 use yewtil::fetch::{Fetch, FetchAction};
-use yewtil::future::LinkFuture;
 
 use super::api::ApiResponse;
 
@@ -23,12 +22,12 @@ pub struct DeleteTodoListComponent {
 #[derive(Properties, Clone)]
 pub struct Props {
     pub todo_list: TodoList,
-    pub refresh: Callback<crate::Msg>
+    pub refresh: Callback<super::todo_list::Msg>,
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse>),
     DeleteApi,
-    Deleted(crate::Msg),
+    Deleted(super::todo_list::Msg),
 }
 
 impl Component for DeleteTodoListComponent {
@@ -50,41 +49,39 @@ impl Component for DeleteTodoListComponent {
                 match fetch_state {
                     FetchAction::NotFetching => {}
                     FetchAction::Fetching => {}
-                    FetchAction::Fetched(_) => {self.update(Msg::Deleted(crate::Msg::FetchJSON));},
+                    FetchAction::Fetched(_) => {
+                        self.update(Msg::Deleted(super::todo_list::Msg::GetApi));
+                    }
                     FetchAction::Failed(_) => {}
                 };
                 self.api.apply(fetch_state);
                 true
             }
             Msg::DeleteApi => {
-                
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-              
 
                 let request = RequestHelper::delete(&self.props.todo_list);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
                         match data {
-                            Ok(d) => {Msg::SetApiFetchState(FetchAction::Fetched(d))}
-                            Err(_) => {Msg::SetApiFetchState(FetchAction::NotFetching)}
+                            Ok(d) => Msg::SetApiFetchState(FetchAction::Fetched(d)),
+                            Err(_) => Msg::SetApiFetchState(FetchAction::NotFetching),
                         }
                     },
                 );
-                
+
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-              
 
                 true
             }
             Msg::Deleted(msg) => {
-
                 self.props.refresh.emit(msg);
-            
-            false
-        }
+
+                false
+            }
         }
     }
 
@@ -97,7 +94,7 @@ impl Component for DeleteTodoListComponent {
         match self.api.as_ref().state() {
             yewtil::fetch::FetchState::NotFetching(_) => {
                 html! {
-                    <button onclick=self.link.callback(|_| Msg::DeleteApi)>
+                    <button class="btn-primary" onclick=self.link.callback(|_| Msg::DeleteApi)>
                         { "Delete" }
                     </button>
                 }

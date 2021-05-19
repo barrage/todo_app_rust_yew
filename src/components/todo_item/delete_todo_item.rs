@@ -22,12 +22,12 @@ pub struct DeleteTodoItemComponent {
 #[derive(Properties, Clone)]
 pub struct Props {
     pub todo_item: TodoItem,
-    pub refresh: Callback<super::todo_item::Msg>
+    pub refresh: Callback<super::todo_item::Msg>,
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse<String>>),
     DeleteApi,
-    Deleted(super::todo_item::Msg)
+    Deleted(super::todo_item::Msg),
 }
 
 impl Component for DeleteTodoItemComponent {
@@ -49,7 +49,9 @@ impl Component for DeleteTodoItemComponent {
                 match fetch_state {
                     FetchAction::NotFetching => {}
                     FetchAction::Fetching => {}
-                    FetchAction::Fetched(_) => {self.update(Msg::Deleted(super::todo_item::Msg::GetApi));},
+                    FetchAction::Fetched(_) => {
+                        self.update(Msg::Deleted(super::todo_item::Msg::GetApi));
+                    }
                     FetchAction::Failed(_) => {}
                 };
                 self.api.apply(fetch_state);
@@ -77,7 +79,7 @@ impl Component for DeleteTodoItemComponent {
             }
             Msg::Deleted(m) => {
                 self.props.refresh.emit(m);
-                
+
                 false
             }
         }

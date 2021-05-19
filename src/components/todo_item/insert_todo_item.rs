@@ -26,7 +26,7 @@ pub struct InsertTodoItemComponent {
 #[derive(Properties, Clone)]
 pub struct Props {
     pub todo_list: i32,
-    pub refresh: Callback<super::todo_item::Msg>
+    pub refresh: Callback<super::todo_item::Msg>,
 }
 pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse<TodoItem>>),
@@ -55,7 +55,9 @@ impl Component for InsertTodoItemComponent {
                 match fetch_state {
                     FetchAction::NotFetching => {}
                     FetchAction::Fetching => {}
-                    FetchAction::Fetched(_) => {self.update(Msg::Inserted(super::todo_item::Msg::GetApi));},
+                    FetchAction::Fetched(_) => {
+                        self.update(Msg::Inserted(super::todo_item::Msg::GetApi));
+                    }
                     FetchAction::Failed(_) => {}
                 };
                 self.api.apply(fetch_state);
@@ -110,7 +112,7 @@ impl Component for InsertTodoItemComponent {
         html! {
             <>
                 <div style="margin-left: 40px">
-                    <input type="text" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=&self.insert_title/>
+                    <input type="text" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=self.insert_title.clone()/>
                     <button onclick=self.link.callback(|_| Msg::PostApi)>
                             { "Add new item" }
                     </button>
