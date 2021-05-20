@@ -23,8 +23,14 @@ impl Component for Footer {
     fn view(&self) -> Html {
         html! {
             <div>
-                <h2> {"To-do app test! Footer"} </h2>
-            </div>
+            <div class="container">
+                <div class="row" style="height: 100px"> </div>
+               <div class="row" style="justify-content:center"> 
+                    <p>
+                        {"Robert Sudec"} <span style="color: #feffff ">{" @ "} </span> {"Barrage 2021"}
+                    </p>
+               </div>
+            </div></div>
         }
     }
 }

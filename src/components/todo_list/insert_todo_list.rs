@@ -107,10 +107,18 @@ impl Component for InsertTodoListComponent {
     fn view(&self) -> yew::Html {
         html! {
             <>
-                <input type="text" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=self.insert_title.clone()/>
-                <button onclick=self.link.callback(|_| Msg::PostApi)>
+                <div class="input-group mb-3">
+                    
+                    <input type="text" class="form-control" placeholder="Title" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=self.insert_title.clone()/>
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" style="color:black; background-color:#def2f1" type="button" onclick=self.link.callback(|_| Msg::PostApi)>
                         { "Add new list" }
-                </button>
+                        </button>
+                    </div>
+                    
+                </div>
+                
+                
 
                 {match self.api.as_ref().state() {
                     yewtil::fetch::FetchState::NotFetching(_) => {
@@ -118,20 +126,23 @@ impl Component for InsertTodoListComponent {
                     }
                     yewtil::fetch::FetchState::Fetching(_) => {
                         html! {
-                            <p> { "Inserting"} </p>
+                            
                         }
                     }
                     yewtil::fetch::FetchState::Fetched(response) => {
 
 
                             html! {
-                                <div>
-                                    <h4><b>{&"Inserted: "} {&response.body[0].title}</b></h4>
+                                <div class="alert alert-success" role="alert"> 
+                                   <strong> {"Inserted:  "} </strong> {&response.body[0].title}
                                 </div>
+                                /*<div>
+                                    <h4><b>{&"Inserted: "} {&response.body[0].title}</b></h4>
+                                </div>*/
                             }
 
                     }
-                    yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
+                    yewtil::fetch::FetchState::Failed(_, _) => {html!{}}
                 }}
 
             </>
