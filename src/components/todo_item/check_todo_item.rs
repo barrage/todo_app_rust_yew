@@ -17,7 +17,9 @@ pub struct CheckTodoItemComponent {
     api: Fetch<Request<ApiResponse<TodoItem>>, ApiResponse<TodoItem>>,
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
+    checked: bool,
     props: Props,
+    
 }
 #[derive(Properties, Clone)]
 pub struct Props {
@@ -39,13 +41,23 @@ impl Component for CheckTodoItemComponent {
             api: Default::default(),
             fetch_task: None,
             link,
+            checked: props.todo_item.done,
             props,
+            
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> yew::ShouldRender {
         match msg {
             Msg::SetApiFetchState(fetch_state) => {
+                match fetch_state {
+                    FetchAction::NotFetching => {}
+                    FetchAction::Fetching => {}
+                    FetchAction::Fetched(ref res) => {
+                        self.checked = res.body[0].done;
+                    }
+                    FetchAction::Failed(_) => {}
+                };
                 self.api.apply(fetch_state);
                 true
             }
@@ -60,11 +72,12 @@ impl Component for CheckTodoItemComponent {
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
-
-                        Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                        match data {
+                            Ok(d) => Msg::SetApiFetchState(FetchAction::Fetched(d)),
+                            Err(_) => Msg::SetApiFetchState(FetchAction::NotFetching),
+                        }
                     },
                 );
-
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
 
@@ -76,17 +89,19 @@ impl Component for CheckTodoItemComponent {
 
                 let body = CheckTodoItem {
                     id: self.props.todo_item.id,
-                    checked: !self.props.todo_item.done,
+                    checked: !self.checked,
                     todo_list_id: self.props.todo_item.todo_list_id,
                 }
                 .clone();
-
+                
                 let request = RequestHelper::patch(&body);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
-
-                        Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                        match data {
+                            Ok(d) => Msg::SetApiFetchState(FetchAction::Fetched(d)),
+                            Err(_) => Msg::SetApiFetchState(FetchAction::NotFetching),
+                        }
                     },
                 );
 
