@@ -99,11 +99,13 @@ impl Component for TodoItemComponent {
                             html! {
                                 {body.items.iter().map(|todo_item: &TodoItem| {
                                     html! {
-                                        <div class="card m-1 container" style="background-color:#2b7a78; text-color: white ">
-                                            <div class="card-body row justify-content-between align-items-center" >
-                                            <span class="col-4" style="color: white"><b>{&todo_item.title} </b></span>
-                                                <div class="col-3"> <CheckTodoItemComponent  todo_item=todo_item.clone() refresh=callback.clone()/> </div>
-                                                <div class="col-2"><DeleteTodoItemComponent todo_item=todo_item.clone() refresh=callback.clone()/> </div>
+                                        <div class="card m-1" style="background-color:#2b7a78; text-color: white ">
+                                            <div class="card-body container" >
+                                                <div class="row align-items-center ">
+                                                    <span class="col" style="color: white; text-align:start"><b>{&todo_item.title} </b></span>
+                                                    <div class="col" style="text-align:center"> <CheckTodoItemComponent  todo_item=todo_item.clone() refresh=callback.clone()/> </div>
+                                                    <div class="col" style="text-align:end"><DeleteTodoItemComponent todo_item=todo_item.clone() refresh=callback.clone()/> </div>
+                                                </div>
                                             </div>
                                         </div>
                                     }
