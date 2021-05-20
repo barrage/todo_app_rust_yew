@@ -97,7 +97,9 @@ impl Component for TodoListComponent {
         let refresh_cb = self.link.callback(|_| Msg::GetApi);
         html! {
             <>
-                <div class="container" style="height: 100px"> </div>
+                <div class="d-flex align-items-center " style="height: 150px"> 
+                    <h3 class="" > {"My lists"} </h3>
+                </div>
                 <InsertTodoListComponent refresh= refresh_cb.clone()/>
 
                 {match self.api.as_ref().state() {
@@ -127,12 +129,6 @@ impl Component for TodoListComponent {
                                          
                                             <DeleteTodoListComponent todo_list=todo_list.clone() refresh=refresh_cb.clone()/>
                                         </div>
-                                        
-                                   
-                                    /*<div>
-                                        <TodoItemComponent todo_list=todo_list.clone()/>
-
-                                    </div>*/
                                 </div>
                             }
                         }).collect()

@@ -67,13 +67,14 @@ impl Component for DeleteTodoItemComponent {
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<String>, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
-                        Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                        match data {
+                            Ok(d) => Msg::SetApiFetchState(FetchAction::Fetched(d)),
+                            Err(_) => Msg::SetApiFetchState(FetchAction::NotFetching),
+                        }
                     },
                 );
-                //ConsoleService::log("go fetch");
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                //ConsoleService::log("done");
 
                 true
             }
@@ -94,21 +95,19 @@ impl Component for DeleteTodoItemComponent {
         match self.api.as_ref().state() {
             yewtil::fetch::FetchState::NotFetching(_) => {
                 html! {
-                    <button onclick=self.link.callback(|_| Msg::DeleteApi)>
-                        { "x" }
-                    </button>
+                    html! {
+                        <button class="btn btn-danger" type="button" onclick=self.link.callback(|_| Msg::DeleteApi)>
+                            { "Delete" }
+                        </button>
+                    }
                 }
             }
             yewtil::fetch::FetchState::Fetching(_) => {
                 html! {}
             }
-            yewtil::fetch::FetchState::Fetched(response) => match response.code {
-                200 => html! { <span style="color:green;">{" Deleted"} </span> },
-                500 => html! { <span style="color:red;">{" Can't delete, has children"} </span> },
-                _ => html! { " -> Idk"},
-            },
+            yewtil::fetch::FetchState::Fetched(response) => html! {},
             yewtil::fetch::FetchState::Failed(_, _) => {
-                html! {<h1>{"ERROR"}</h1>}
+                html! {}
             }
         }
     }

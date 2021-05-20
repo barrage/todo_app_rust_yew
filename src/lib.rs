@@ -184,7 +184,7 @@ impl Component for Model {
                 <div>
                 {
                     match AppRoute::switch(self.route.clone()){
-                        Some(AppRoute::TodoList(id)) => html! { <TodoItemComponent todo_list=id />},
+                        Some(AppRoute::TodoList(id)) => html! { <TodoItemComponent todo_list=id/>},
                         Some(AppRoute::TodoLists) => html! {<TodoListComponent />},
                         Some(AppRoute::Home) => html! {<HomeComponent/>},
                         None => html! {"none"}

@@ -119,7 +119,10 @@ impl Component for CheckTodoItemComponent {
                     yewtil::fetch::FetchState::Fetched(response) => {
 
                             html! {
-                                <input type="checkbox" checked=response.body[0].done onclick=self.link.callback(|_| Msg::PatchApi)/>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" checked=response.body[0].done onclick=self.link.callback(|_| Msg::PatchApi)/>
+                                </div>
+                                //<input type="checkbox" checked=response.body[0].done onclick=self.link.callback(|_| Msg::PatchApi)/>
                             }
 
                     }

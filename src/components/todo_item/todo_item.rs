@@ -28,6 +28,7 @@ pub struct TodoItemComponent {
 #[derive(Properties, Clone)]
 pub struct Props {
     pub todo_list: i32,
+    
 }
 
 pub enum Msg {
@@ -87,9 +88,12 @@ impl Component for TodoItemComponent {
     fn view(&self) -> yew::Html {
         let callback = self.link.callback(|m: Msg| m);
         html! {
-            <div style="margin-left:40px">
-
-                <h2> {"Yo wat the fuc"} </h2>
+            <>
+           
+                <div class="d-flex align-items-center " style="height: 150px"> 
+                    <h3 class="" > {" Items"} </h3>
+                </div>
+                <InsertTodoItemComponent todo_list=self.props.todo_list refresh=callback.clone()/>
                 {
                     match self.api.as_ref().state() {
                         yewtil::fetch::FetchState::NotFetching(_) => {
@@ -103,37 +107,41 @@ impl Component for TodoItemComponent {
                             }
                         }
                         yewtil::fetch::FetchState::Fetched(response) => {
+                            let mut body = response.body[0].clone();
+                            body.items.sort_by(|a,b| b.id.cmp(&a.id));
                             html! {
-                                <table>
-                                    {response.body[0].items.iter().map(|todo_item: &TodoItem| {
+                                
+                                    {body.items.iter().map(|todo_item: &TodoItem| {
 
                                         html! {
-                                            <tr>
-                                                <td><b>{&todo_item.title} </b></td>
-                                                <td><CheckTodoItemComponent todo_item=todo_item.clone() refresh=callback.clone()/></td>
-                                                <td><DeleteTodoItemComponent todo_item=todo_item.clone() refresh=callback.clone()/></td>
-                                            </tr>
+                                            <div class="card m-1 container" style="background-color:#2b7a78; text-color: white ">
+                                    
+                                                <div class="card-body row justify-content-between align-items-center" > 
+                                                <span class="col-4" style="color: white"><b>{&todo_item.title} </b></span>
+                                                   <div class="col-3"> <CheckTodoItemComponent  todo_item=todo_item.clone() refresh=callback.clone()/> </div>
+                                                   <div class="col-2"><DeleteTodoItemComponent todo_item=todo_item.clone() refresh=callback.clone()/> </div>
+                                                   
+                                                </div> 
+                                            </div>
                                         }
                                     }).collect::<VNode>()}
-                                    <tr>
-                                        <td>
-                                        <InsertTodoItemComponent todo_list=self.props.todo_list refresh=callback.clone()/>
-                                        </td>
-                                    </tr>
-                                </table>
+                                   
+                                        
+                                       
+                                
                             }
 
 
 
 
                         }
-                        yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
+                        yewtil::fetch::FetchState::Failed(_, _) => {html!{}}
                     }
                 }
 
 
 
-            </div>
+            </>
         }
     }
 

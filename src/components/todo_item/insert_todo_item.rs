@@ -111,12 +111,17 @@ impl Component for InsertTodoItemComponent {
     fn view(&self) -> yew::Html {
         html! {
             <>
-                <div style="margin-left: 40px">
-                    <input type="text" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=self.insert_title.clone()/>
-                    <button onclick=self.link.callback(|_| Msg::PostApi)>
-                            { "Add new item" }
-                    </button>
+            <div class="input-group mb-3">
+                    
+                    <input type="text" class="form-control" placeholder="Title" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=self.insert_title.clone()/>
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" style="color:black; background-color:#def2f1" type="button" onclick=self.link.callback(|_| Msg::PostApi)>
+                        { "Add new item" }
+                        </button>
+                    </div>
+                    
                 </div>
+                
                 {match self.api.as_ref().state() {
                     yewtil::fetch::FetchState::NotFetching(_) => {
                         html!{}
@@ -130,8 +135,8 @@ impl Component for InsertTodoItemComponent {
 
 
                             html! {
-                                <div>
-                                    <h4 style="color:green"><b>{&"Inserted: "} {&response.body[0].title}</b></h4>
+                                <div class="alert alert-success" role="alert"> 
+                                   <strong> {"Inserted:  "} </strong> {&response.body[0].title}
                                 </div>
                             }
 
