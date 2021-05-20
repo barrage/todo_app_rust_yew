@@ -1,19 +1,30 @@
-use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
+use yew::{Bridge,Bridged, Component, ComponentLink, Html, Properties, ShouldRender, html};
+use yew_router::{components::RouterAnchor, prelude::RouteAgent};
 
-pub struct Header {}
+use crate::routes::AppRoute;
+
+pub struct Header {
+    router_agent: Box<dyn Bridge<RouteAgent>>,
+}
 #[derive(Properties, Clone)]
 pub struct Props {}
-pub enum Msg {}
+pub enum Msg {
+    Ignore,
+}
 
 impl Component for Header {
     type Message = Msg;
     type Properties = Props;
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Header {}
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Header {
+            router_agent: RouteAgent::bridge(link.callback(|_| Msg::Ignore)),
+        }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        true
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::Ignore => {true}
+        }
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -22,9 +33,18 @@ impl Component for Header {
 
     fn view(&self) -> Html {
         html! {
-            <div>
-                <h2> {"To-do app test! Header"} </h2>
-            </div>
+            <ul class="nav">
+                <li class="nav-item">
+                <RouterAnchor<AppRoute> route=AppRoute::Home>
+                    <a class="nav-link active">{"Home"}</a>
+                </RouterAnchor<AppRoute>>
+                </li>
+                <li class="nav-item">
+                    <RouterAnchor<AppRoute> route=AppRoute::TodoLists>
+                        <a class="nav-link">{"Lists"}</a>
+                    </RouterAnchor<AppRoute>>
+                </li>
+            </ul>  
         }
     }
 }

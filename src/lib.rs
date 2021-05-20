@@ -11,7 +11,7 @@ use crate::components::todo_list::todo_list::TodoListComponent;
 use routes::AppRoute;
 
 use wasm_bindgen::prelude::*;
-use yew:: prelude::*;
+use yew::{prelude::*, services::ConsoleService};
 use yew::events::*;
 use yew::services::fetch::{FetchTask};
 
@@ -23,7 +23,7 @@ use yew_router::{Switch, prelude::RouteAgent, route::Route, service::RouteServic
 
 pub enum Msg {
     RouteChanged(Route<()>),
-    ChangeRoute(AppRoute),
+    //ChangeRoute(AppRoute),
     /*FetchJSON,
     FetchReady(Result<ApiResponse, Error>),
 
@@ -84,12 +84,6 @@ pub struct Model {
 
 }
 impl Model {
-    fn change_route(&self, app_route: AppRoute) -> Callback<MouseEvent> {
-        self.link.callback(move |_| {
-            let route = app_route.clone(); // TODO, I don't think I should have to clone here?
-            Msg::ChangeRoute(route)
-        })
-    }
     /*fn fetch_json(&mut self) -> FetchTask {
         let callback = self.link.callback(
             move |response: Response<Json<Result<ApiResponse, Error>>>| {
@@ -114,11 +108,11 @@ impl Component for Model {
     type Properties = ();
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let router_agent = RouteAgent::bridge(link.callback(Msg::RouteChanged));
-        let mut route_service : RouteService<()> = RouteService::new();
+        let route_service : RouteService<()> = RouteService::new();
         let route = route_service.get_route();
-        
+        /*
         let callback= link.callback( Msg::RouteChanged);
-        route_service.register_callback(callback);
+        route_service.register_callback(callback);*/
         
         Self {
             link,
@@ -150,8 +144,12 @@ impl Component for Model {
             Msg::Try => true,
         }*/
        match msg {
-           Msg::RouteChanged(route) => self.route = route,
-           Msg::ChangeRoute(route) => {
+           Msg::RouteChanged(route) => {
+             ConsoleService::log(&format!("{}", route.route));   
+            self.route_service.set_route(&route.route, ());
+            self.route = route
+            },
+           /*Msg::ChangeRoute(route) => {
             // This might be derived in the future
             let route_string = match route {
                 AppRoute::Home => "/".to_string(),
@@ -164,7 +162,7 @@ impl Component for Model {
                 route: route_string,
                 state: (),
             };
-        }
+        }*/
        }
         true
     }
@@ -177,15 +175,12 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
-        //let callback = self.link.callback(|m| m);
+     
 
         html! {
             <>
                 <Header/>
-                <nav>
-                    <button onclick=&self.change_route(AppRoute::Home) > {"home"} </button>
-                    <button onclick=&self.change_route(AppRoute::TodoLists) > {"lists"} </button>
-                </nav>
+               
                 <div>
                 {
                     match AppRoute::switch(self.route.clone()){

@@ -29,20 +29,13 @@ pub enum Msg {
     SetApiFetchState(FetchAction<ApiResponse>),
     GetApi,
     Ignore,
-    ChangeRoute(AppRoute)
+    //ChangeRoute(AppRoute)
 }
 #[derive(Properties, Clone)]
 pub struct Props {
     
 }
-impl TodoListComponent {
-    fn change_route(&self, app_route: AppRoute) -> Callback<MouseEvent> {
-        self.link.callback(move |_| {
-            let route = app_route.clone(); // TODO, I don't think I should have to clone here?
-            Msg::ChangeRoute(route)
-        })
-    }
-}
+
 impl Component for TodoListComponent {
     type Message = Msg;
     type Properties = Props;
@@ -86,10 +79,10 @@ impl Component for TodoListComponent {
                 true
             }
             Msg::Ignore => {true}
-            Msg::ChangeRoute(route) => {
+            /*Msg::ChangeRoute(route) => {
                 &self.router_agent.send(ChangeRoute(route.into()));
                 true
-            }
+            }*/
         }
         
     }
@@ -121,12 +114,13 @@ impl Component for TodoListComponent {
                         let mut body = response.body.clone();
                         body.sort_by(|a,b| b.id.cmp(&a.id));
                         body.iter().map(|todo_list: &TodoList| {
+                            
                             html! {
                                 <div class="card">
                                     <h4>
                                     
                                         <RouterAnchor<AppRoute> route=AppRoute::TodoList(todo_list.id)>
-                                            <button onclick=&self.change_route(AppRoute::TodoList(todo_list.id))> <b>{&todo_list.title} </b> </button>
+                                            <button> <b>{&todo_list.title} </b> </button>
                                         </RouterAnchor<AppRoute>>
                                         
                                         //<button onclick=&self.change_route(AppRoute::Home) > {"home"} </button>
