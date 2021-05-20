@@ -5,7 +5,6 @@ use yew::{
     format::{Json, Nothing},
     services::fetch::Request,
 };
-use yewtil::fetch::{FetchRequest, MethodBody};
 
 use super::super::todo_item::api::TodoItem;
 

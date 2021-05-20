@@ -58,11 +58,8 @@ impl Component for DeleteTodoItemComponent {
                 true
             }
             Msg::DeleteApi => {
-                //ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                //ConsoleService::log("fetch");
-
                 let request = RequestHelper::delete(&self.props.todo_item);
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<String>, anyhow::Error>>>| {
@@ -75,12 +72,10 @@ impl Component for DeleteTodoItemComponent {
                 );
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-
                 true
             }
             Msg::Deleted(m) => {
                 self.props.refresh.emit(m);
-
                 false
             }
         }
@@ -105,7 +100,9 @@ impl Component for DeleteTodoItemComponent {
             yewtil::fetch::FetchState::Fetching(_) => {
                 html! {}
             }
-            yewtil::fetch::FetchState::Fetched(response) => html! {},
+            yewtil::fetch::FetchState::Fetched(_response) => {
+                html! {}
+            }
             yewtil::fetch::FetchState::Failed(_, _) => {
                 html! {}
             }

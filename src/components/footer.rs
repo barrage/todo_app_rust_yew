@@ -8,7 +8,7 @@ pub enum Msg {}
 impl Component for Footer {
     type Message = Msg;
     type Properties = Props;
-    fn create(props: Self::Properties, _: ComponentLink<Self>) -> Self {
+    fn create(_props: Self::Properties, _: ComponentLink<Self>) -> Self {
         Footer {}
     }
 
@@ -16,7 +16,7 @@ impl Component for Footer {
         true
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
         true
     }
 
@@ -25,7 +25,7 @@ impl Component for Footer {
             <div>
             <div class="container">
                 <div class="row" style="height: 100px"> </div>
-               <div class="row" style="justify-content:center"> 
+               <div class="row" style="justify-content:center">
                     <p>
                         {"Robert Sudec"} <span style="color: #feffff ">{" @ "} </span> {"Barrage 2021"}
                     </p>

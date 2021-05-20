@@ -1,18 +1,15 @@
-use crate::components::todo_list::api::TodoList;
-
 use super::api::{InputTodoItem, RequestHelper, TodoItem};
 use yew::{
-    format::{Json, Nothing},
+    format::Json,
     html,
     prelude::*,
     services::{
         fetch::{FetchTask, Request, Response},
-        ConsoleService, FetchService,
+        FetchService,
     },
     Component, ComponentLink, InputData,
 };
 use yewtil::fetch::{Fetch, FetchAction};
-use yewtil::future::LinkFuture;
 
 use super::api::ApiResponse;
 
@@ -68,10 +65,8 @@ impl Component for InsertTodoItemComponent {
                     Msg::SetApiFetchState(FetchAction::NotFetching);
                     return true;
                 }
-                ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                ConsoleService::log("fetch");
                 let body = InputTodoItem {
                     title: self.insert_title.clone(),
                     todo_list_id: self.props.todo_list,
@@ -81,15 +76,14 @@ impl Component for InsertTodoItemComponent {
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse<TodoItem>, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
-                        ConsoleService::log(&format!("{:?}", data));
-                        Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                        match data {
+                            Ok(d) => Msg::SetApiFetchState(FetchAction::Fetched(d)),
+                            Err(_) => Msg::SetApiFetchState(FetchAction::NotFetching),
+                        }
                     },
                 );
-                ConsoleService::log("go fetch");
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                ConsoleService::log("done");
-
                 true
             }
             Msg::UpdateInsertTitle(new_title) => {
@@ -111,39 +105,34 @@ impl Component for InsertTodoItemComponent {
     fn view(&self) -> yew::Html {
         html! {
             <>
-            <div class="input-group mb-3">
-                    
+                <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Title" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=self.insert_title.clone()/>
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" style="color:black; background-color:#def2f1" type="button" onclick=self.link.callback(|_| Msg::PostApi)>
                         { "Add new item" }
                         </button>
                     </div>
-                    
                 </div>
-                
-                {match self.api.as_ref().state() {
-                    yewtil::fetch::FetchState::NotFetching(_) => {
-                        html!{}
-                    }
-                    yewtil::fetch::FetchState::Fetching(_) => {
-                        html! {
-                            <p> { "Inserting"} </p>
+                {
+                    match self.api.as_ref().state() {
+                        yewtil::fetch::FetchState::NotFetching(_) => {
+                            html!{}
                         }
-                    }
-                    yewtil::fetch::FetchState::Fetched(response) => {
-
-
+                        yewtil::fetch::FetchState::Fetching(_) => {
+                            html! {}
+                        }
+                        yewtil::fetch::FetchState::Fetched(response) => {
                             html! {
-                                <div class="alert alert-success" role="alert"> 
-                                   <strong> {"Inserted:  "} </strong> {&response.body[0].title}
+                                <div class="alert alert-success" role="alert">
+                                <strong> {"Inserted:  "} </strong> {&response.body[0].title}
                                 </div>
                             }
-
+                        }
+                        yewtil::fetch::FetchState::Failed(_, _) => {
+                            html!{}
+                        }
                     }
-                    yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
-                }}
-
+                }
             </>
         }
     }

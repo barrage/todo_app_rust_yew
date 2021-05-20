@@ -65,10 +65,8 @@ impl Component for InsertTodoListComponent {
                     Msg::SetApiFetchState(FetchAction::NotFetching);
                     return true;
                 }
-                //ConsoleService::log("getApi");
                 self.link
                     .send_message(Msg::SetApiFetchState(FetchAction::Fetching));
-                //ConsoleService::log("fetch");
                 let body = InputTodoList {
                     title: self.insert_title.clone(),
                 }
@@ -77,14 +75,14 @@ impl Component for InsertTodoListComponent {
                 let callback = self.link.callback(
                     |res: Response<Json<Result<ApiResponse, anyhow::Error>>>| {
                         let Json(data) = res.into_body();
-                        Msg::SetApiFetchState(FetchAction::Fetched(data.unwrap()))
+                        match data {
+                            Ok(d) => Msg::SetApiFetchState(FetchAction::Fetched(d)),
+                            Err(_) => Msg::SetApiFetchState(FetchAction::NotFetching),
+                        }
                     },
                 );
-                //ConsoleService::log("go fetch");
                 let task = FetchService::fetch(request, callback).unwrap();
                 self.fetch_task = Some(task);
-                //ConsoleService::log("done");
-
                 true
             }
             Msg::UpdateInsertTitle(new_title) => {
@@ -108,43 +106,34 @@ impl Component for InsertTodoListComponent {
         html! {
             <>
                 <div class="input-group mb-3">
-                    
                     <input type="text" class="form-control" placeholder="Title" oninput=self.link.callback(|e : InputData| Msg::UpdateInsertTitle(e.value)) value=self.insert_title.clone()/>
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" style="color:black; background-color:#def2f1" type="button" onclick=self.link.callback(|_| Msg::PostApi)>
                         { "Add new list" }
                         </button>
                     </div>
-                    
                 </div>
-                
-                
-
-                {match self.api.as_ref().state() {
-                    yewtil::fetch::FetchState::NotFetching(_) => {
-                        html!{}
-                    }
-                    yewtil::fetch::FetchState::Fetching(_) => {
-                        html! {
-                            
+                {
+                    match self.api.as_ref().state() {
+                        yewtil::fetch::FetchState::NotFetching(_) => {
+                            html!{}
                         }
-                    }
-                    yewtil::fetch::FetchState::Fetched(response) => {
-
-
+                        yewtil::fetch::FetchState::Fetching(_) => {
                             html! {
-                                <div class="alert alert-success" role="alert"> 
-                                   <strong> {"Inserted:  "} </strong> {&response.body[0].title}
-                                </div>
-                                /*<div>
-                                    <h4><b>{&"Inserted: "} {&response.body[0].title}</b></h4>
-                                </div>*/
+
                             }
+                        }
+                        yewtil::fetch::FetchState::Fetched(response) => {
+                                html! {
+                                    <div class="alert alert-success" role="alert">
+                                    <strong> {"Inserted:  "} </strong> {&response.body[0].title}
+                                    </div>
+                                }
 
+                        }
+                        yewtil::fetch::FetchState::Failed(_, _) => {html!{}}
                     }
-                    yewtil::fetch::FetchState::Failed(_, _) => {html!{}}
-                }}
-
+                }
             </>
         }
     }

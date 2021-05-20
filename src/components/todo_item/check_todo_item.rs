@@ -5,7 +5,7 @@ use yew::{
     prelude::*,
     services::{
         fetch::{FetchTask, Request, Response},
-        ConsoleService, FetchService,
+       FetchService,
     },
     Component, ComponentLink,
 };
@@ -106,29 +106,26 @@ impl Component for CheckTodoItemComponent {
     fn view(&self) -> yew::Html {
         html! {
             <>
-
-                {match self.api.as_ref().state() {
-                    yewtil::fetch::FetchState::NotFetching(_) => {
-                        html!{}
-                    }
-                    yewtil::fetch::FetchState::Fetching(_) => {
-                        html! {
-
+                {
+                    match self.api.as_ref().state() {
+                        yewtil::fetch::FetchState::NotFetching(_) => {
+                            html!{}
                         }
-                    }
-                    yewtil::fetch::FetchState::Fetched(response) => {
-
-                            html! {
+                        yewtil::fetch::FetchState::Fetching(_) => {
+                            html!{}
+                        }
+                        yewtil::fetch::FetchState::Fetched(response) => {
+                            html!{
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" checked=response.body[0].done onclick=self.link.callback(|_| Msg::PatchApi)/>
                                 </div>
-                                //<input type="checkbox" checked=response.body[0].done onclick=self.link.callback(|_| Msg::PatchApi)/>
                             }
-
+                        }
+                        yewtil::fetch::FetchState::Failed(_, _) => {
+                            html!{}
+                        }
                     }
-                    yewtil::fetch::FetchState::Failed(_, _) => {html!{<h1>{"ERROR"}</h1>}}
-                }}
-
+                }
             </>
         }
     }
