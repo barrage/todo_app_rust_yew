@@ -97,12 +97,13 @@ impl Component for TodoListComponent {
         let refresh_cb = self.link.callback(|_| Msg::GetApi);
         html! {
             <>
+                <div class="container" style="height: 100px"> </div>
                 <InsertTodoListComponent refresh= refresh_cb.clone()/>
 
                 {match self.api.as_ref().state() {
                     yewtil::fetch::FetchState::NotFetching(_) => {
                         html! {
-                            <button onclick=self.link.callback(|_| Msg::GetApi)> {"Get lists"} </button>
+                            
                         }
                     }
                     yewtil::fetch::FetchState::Fetching(_) => {
@@ -116,16 +117,18 @@ impl Component for TodoListComponent {
                         body.iter().map(|todo_list: &TodoList| {
                             
                             html! {
-                                <div class="card">
-                                    <h4>
+                                <div class="card m-1" style="background-color:#2b7a78; text-color: white ">
                                     
-                                        <RouterAnchor<AppRoute> route=AppRoute::TodoList(todo_list.id)>
-                                            <button> <b>{&todo_list.title} </b> </button>
-                                        </RouterAnchor<AppRoute>>
+                                    <div class="card-body d-flex justify-content-between align-items-center" >
                                         
-                                        //<button onclick=&self.change_route(AppRoute::Home) > {"home"} </button>
-                                        //<DeleteTodoListComponent todo_list=todo_list.clone() refresh=refresh_cb.clone()/>
-                                    </h4>
+                                        <RouterAnchor<AppRoute> route=AppRoute::TodoList(todo_list.id)>
+                                             <span style="color: white"><b>{&todo_list.title} </b></span>
+                                        </RouterAnchor<AppRoute>>
+                                         
+                                            <DeleteTodoListComponent todo_list=todo_list.clone() refresh=refresh_cb.clone()/>
+                                        </div>
+                                        
+                                   
                                     /*<div>
                                         <TodoItemComponent todo_list=todo_list.clone()/>
 

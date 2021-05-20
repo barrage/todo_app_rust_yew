@@ -33,18 +33,43 @@ impl Component for Header {
 
     fn view(&self) -> Html {
         html! {
-            <ul class="nav">
-                <li class="nav-item">
-                <RouterAnchor<AppRoute> route=AppRoute::Home>
-                    <a class="nav-link active">{"Home"}</a>
-                </RouterAnchor<AppRoute>>
-                </li>
-                <li class="nav-item">
-                    <RouterAnchor<AppRoute> route=AppRoute::TodoLists>
-                        <a class="nav-link">{"Lists"}</a>
-                    </RouterAnchor<AppRoute>>
-                </li>
-            </ul>  
+            
+            <div class="container">
+                <div class="row">
+                    <ul class="nav col">
+                        
+                        <li class=" nav-item">
+                            <RouterAnchor<AppRoute> route=AppRoute::Home>
+                                <h4 class="btn btn-dark nav-link ">{"Home"}</h4>
+                            </RouterAnchor<AppRoute>>
+                        </li>
+                        <div style="width: 10px"></div>
+                        <li class=" nav-item">
+                            <RouterAnchor<AppRoute> route=AppRoute::TodoLists>
+                                <h4 class="btn btn-dark nav-link">{"Lists"}</h4>
+                            </RouterAnchor<AppRoute>>
+                        </li>
+                    </ul>
+                    <div class="col" style="text-align:center">
+                        <h4 class="nav-link font-weight-bold"> {"Todo app in Yew"} </h4>
+                    </div>  
+                    <ul class="nav col" style="visibility: hidden">
+                        
+                        <li class=" nav-item">
+                            <RouterAnchor<AppRoute> route=AppRoute::Home>
+                                <h4 class="btn btn-dark nav-link ">{"Home"}</h4>
+                            </RouterAnchor<AppRoute>>
+                        </li>
+                        <div style="width: 10px"></div>
+                        <li class=" nav-item">
+                            <RouterAnchor<AppRoute> route=AppRoute::TodoLists>
+                                <h4 class="btn btn-dark nav-link">{"Lists"}</h4>
+                            </RouterAnchor<AppRoute>>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
         }
     }
 }

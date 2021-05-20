@@ -94,7 +94,7 @@ impl Component for DeleteTodoListComponent {
         match self.api.as_ref().state() {
             yewtil::fetch::FetchState::NotFetching(_) => {
                 html! {
-                    <button class="btn-primary" onclick=self.link.callback(|_| Msg::DeleteApi)>
+                    <button class="btn btn-danger" type="button" onclick=self.link.callback(|_| Msg::DeleteApi)>
                         { "Delete" }
                     </button>
                 }
@@ -108,7 +108,7 @@ impl Component for DeleteTodoListComponent {
                 _ => html! { " -> Idk"},
             },
             yewtil::fetch::FetchState::Failed(_, _) => {
-                html! {<h1>{"ERROR"}</h1>}
+                html! {}
             }
         }
     }

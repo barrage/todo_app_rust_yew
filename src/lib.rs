@@ -5,7 +5,7 @@ pub mod routes;
 extern crate console_error_panic_hook;
 use crate::components::{footer::Footer, todo_item::todo_item::TodoItemComponent};
 use crate::components::header::Header;
-
+use crate::components::home::HomeComponent;
 use crate::components::todo_list::todo_list::TodoListComponent;
 
 use routes::AppRoute;
@@ -186,7 +186,7 @@ impl Component for Model {
                     match AppRoute::switch(self.route.clone()){
                         Some(AppRoute::TodoList(id)) => html! { <TodoItemComponent todo_list=id />},
                         Some(AppRoute::TodoLists) => html! {<TodoListComponent />},
-                        Some(AppRoute::Home) => html! {"home"},
+                        Some(AppRoute::Home) => html! {<HomeComponent/>},
                         None => html! {"none"}
                     }
                 }
