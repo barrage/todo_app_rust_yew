@@ -13,7 +13,7 @@ pub struct NewTodoList {
     title: String,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug,  Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TodoList {
     pub id: i32,
     pub title: String,
@@ -48,7 +48,7 @@ impl RequestHelper {
     }
 
     pub fn post(body: &InputTodoList) -> Request<Json<&InputTodoList>> {
-        Request::post("http://localhost:8081/todo_lists")
+        Request::post(BASE_URL)
             .header("Content-Type", "application/json")
             .body(Json(body))
             .unwrap()

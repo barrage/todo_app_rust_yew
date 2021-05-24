@@ -1,11 +1,10 @@
-use yew::{html, Bridge, Bridged, Component, ComponentLink, Html, Properties, ShouldRender};
-use yew_router::{components::RouterAnchor, prelude::RouteAgent};
+use yew::{html, Component, ComponentLink, Html, Properties, ShouldRender};
+use yew_router::{components::RouterAnchor};
 
 use crate::routes::AppRoute;
 
 pub struct HomeComponent {
-    #[allow(unused)]
-    router_agent: Box<dyn Bridge<RouteAgent>>,
+    
 }
 #[derive(Properties, Clone)]
 pub struct Props {}
@@ -16,9 +15,9 @@ pub enum Msg {
 impl Component for HomeComponent {
     type Message = Msg;
     type Properties = Props;
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self {
         HomeComponent {
-            router_agent: RouteAgent::bridge(link.callback(|_| Msg::Ignore)),
+            
         }
     }
 

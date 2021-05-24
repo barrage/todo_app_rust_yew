@@ -13,7 +13,7 @@ use yew::{
     },
     Component, ComponentLink,
 };
-use yew_router::{components::RouterAnchor, prelude::RouteAgent};
+use yew_router::{components::RouterAnchor};
 use yewtil::fetch::{Fetch, FetchAction};
 
 pub struct TodoListComponent {
@@ -21,8 +21,6 @@ pub struct TodoListComponent {
     fetch_task: Option<FetchTask>,
     link: ComponentLink<Self>,
     props: Props,
-    #[allow(unused)]
-    router_agent: Box<dyn Bridge<RouteAgent>>,
 }
 
 pub enum Msg {
@@ -42,7 +40,6 @@ impl Component for TodoListComponent {
             api: Default::default(),
             fetch_task: None,
             props: _props,
-            router_agent: RouteAgent::bridge(link.callback(|_| Msg::Ignore)),
             link,
         }
     }

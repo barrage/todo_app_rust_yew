@@ -32,10 +32,8 @@ pub struct Model {
     route: Route<()>,
     #[allow(unused)]
     router_agent: Box<dyn Bridge<RouteAgent>>,
+}
 
-}
-impl Model {
-}
 impl Component for Model {
     type Message = Msg;
     type Properties = ();

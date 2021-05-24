@@ -91,6 +91,7 @@ impl Component for DeleteTodoListComponent {
         match self.api.as_ref().state() {
             yewtil::fetch::FetchState::NotFetching(_) => {
                 html! {
+                    
                     <button class="btn btn-danger" type="button" onclick=self.link.callback(|_| Msg::DeleteApi)>
                         { "Delete" }
                     </button>
